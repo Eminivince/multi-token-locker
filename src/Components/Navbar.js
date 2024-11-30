@@ -7,6 +7,7 @@ const Navbar = ({ address }) => {
   return (
     <AppBar position="static">
       <Toolbar>
+        <img src="/logo.png" alt="logo" style={{ height: "20px" }} />
         <Typography variant="h6" style={{ flexGrow: 1 }}>
           Liquidity Locker
         </Typography>

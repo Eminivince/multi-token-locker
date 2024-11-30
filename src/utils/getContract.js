@@ -8,17 +8,14 @@ const getContract = (signerOrProvider) => {
 
   let contract;
   try {
-    console.log("creating contract");
     contract = new ethers.Contract(
       contractAddress,
       LiquidityLockerABI,
       signerOrProvider
     );
 
-    console.log({ contract });
     return contract;
   } catch (e) {
-    console.log({ contract });
     console.error("Error fetching contractf:", e);
   }
 };
@@ -27,17 +24,14 @@ const getFactoryContract = (signerOrProvider) => {
     const factoryContractAddress = "0x2b6852CeDEF193ece9814Ee99BE4A4Df7F463557"; // Replace with your deployed contract address
     let contract;
     try {
-      console.log("creating factory contract");
       contract = new ethers.Contract(
         factoryContractAddress,
         factoryABI,
         signerOrProvider
       );
 
-      console.log({ contract });
       return contract;
     } catch (e) {
-      console.log({ contract });
       console.error("Error fetching contractf:", e);
     }
 }

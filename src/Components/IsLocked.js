@@ -17,16 +17,12 @@ import { toast } from "react-toastify";
 import { isAddress } from "ethers/lib/utils";
 
 const IsLocked = ({ signer }) => {
-  console.log({ signer });
   const [lockState, setLockState] = useState();
   const [lockAmount, setLockAmount] = useState();
   const [unlockTimes, setUnlockTimes] = useState();
 
   const isLocked = async (tokenAddress) => {
-    console.log("Checking if token is locked");
     const contract = getContract(signer);
-    console.log("Contract:", contract);
-    console.log("Contract address:", contract.address);
 
     const tokenContract = new ethers.Contract(
       tokenAddress,
@@ -38,12 +34,8 @@ const IsLocked = ({ signer }) => {
     );
     const tokenName = await tokenContract.name();
     const tokenSymbol = await tokenContract.symbol();
-    console.log("Token Name:", tokenName);
-    console.log("Token Symbol:", tokenSymbol);
 
-    console.log("Pair address found");
     const lockInfo = await contract.getTokenLockInfo(tokenAddress);
-    console.log("Lock Info:", lockInfo);
     let lockState = lockInfo[0];
     let lockAmount = ethers.utils.formatEther(lockInfo[1]);
     let unlockTimes = lockInfo[2].map((time) => time.toNumber());
@@ -51,9 +43,6 @@ const IsLocked = ({ signer }) => {
     setLockState(lockState);
     setLockAmount(lockAmount);
     setUnlockTimes(unlockTimes);
-    console.log("Lock State:", lockState);
-    console.log("Lock Amount:", lockAmount);
-    console.log("Unlock Times:", unlockTimes);
     return { tokenName, tokenSymbol, lockState, lockAmount, unlockTimes };
   };
 

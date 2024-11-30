@@ -19,12 +19,7 @@ const ConnectWallet = ({ setProvider, setSigner, setAddress }) => {
       const provider = new ethers.providers.Web3Provider(connection);
       const signer = provider.getSigner();
 
-      // Debugging: Inspect signer object
-      console.log("Signer Object:", signer);
-      console.log(
-        "Signer Methods:",
-        Object.getOwnPropertyNames(Object.getPrototypeOf(signer))
-      );
+      
 
       // Check if getAddress exists
       if (typeof signer.getAddress !== "function") {

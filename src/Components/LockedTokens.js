@@ -16,20 +16,12 @@ import {
 import { toast } from "react-toastify";
 
 const LockedTokens = ({ signer, address }) => {
-  console.log({ signer });
-  console.log(address);
   const [locks, setLocks] = useState([]);
 
   const fetchLocks = async () => {
-    console.log("Fetching locks for address:", address);
     try {
-      console.log("Fetching locks for address:", address);
       const contract = getContract(signer);
-      console.log("Contract:", contract);
-      console.log("Fetching locks for address:", address);
-      console.log("Contract address:", contract.address);
       const totalLocks = await contract.getLockCount(address);
-      console.log("Total locks:", totalLocks);
       const locksData = [];
 
       for (let i = 0; i < totalLocks; i++) {
