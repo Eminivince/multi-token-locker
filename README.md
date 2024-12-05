@@ -1,3 +1,10 @@
+# Liquidity Locker
+
+This project is a front-end application that allows users to lock their liquidity tokens in a smart contract. The smart contract is deployed on the AirDAO Mainnet. The application is built using React.js and ethers.js.
+User may lock liquidity tokens in the smart contract, view their locked tokens, unlock their tokens, and view the total locked tokens.
+
+Anyone can also view the total locked tokens for a specific token contract adddress.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
