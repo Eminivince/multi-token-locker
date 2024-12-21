@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import ConnectWallet from "../src/Components/ConnectWallet";
 import LockForm from "../src/Components//LockForm";
 import LockedTokens from "../src/Components/LockedTokens";
+import CreateTokenForm from "../src/Components/CreateTokenForm";
 import Navbar from "../src/Components//Navbar";
 import { Container, Typography } from "@mui/material";
 import { ToastContainer } from "react-toastify";
@@ -24,7 +25,7 @@ function App() {
           align="center"
           gutterBottom
           style={{ marginTop: "20px" }}>
-          AirDAO Liquidity Locker
+          AirPad
         </Typography>
         <ConnectWallet
           setProvider={setProvider}
@@ -39,6 +40,15 @@ function App() {
           </>
         )}
       </Container>
+
+      <div className="App">
+        <header className="App-header">
+          <h1 className="text-center">ERC20 Token Creator</h1>
+        </header>
+        <main>
+          <CreateTokenForm />
+        </main>
+      </div>
       <ToastContainer />
     </Router>
   );

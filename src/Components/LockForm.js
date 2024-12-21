@@ -62,7 +62,7 @@ const handleLock = async (e) => {
   return (
     <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
       <Typography variant="h6" gutterBottom>
-        Lock Tokens
+        Lock ERC20 Tokens
       </Typography>
       <form onSubmit={handleLock}>
         <Grid container spacing={2}>
