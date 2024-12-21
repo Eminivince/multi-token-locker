@@ -50,7 +50,7 @@ const CreateTokenForm = () => {
       );
 
       setLoading(true);
-      const initialSupply = ethers.utils.parseUnits(supply, 18); // Ensure 18 decimals
+      const initialSupply = supply; // Ensure 18 decimals
 
       const contract = await ERC20Factory.deploy(
         name,

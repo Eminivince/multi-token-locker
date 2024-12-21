@@ -25,7 +25,7 @@ function App() {
           align="center"
           gutterBottom
           style={{ marginTop: "20px" }}>
-          AirPad
+          AirDAO Liquidity Locker
         </Typography>
         <ConnectWallet
           setProvider={setProvider}

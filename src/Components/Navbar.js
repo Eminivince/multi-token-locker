@@ -9,7 +9,7 @@ return (
         <Toolbar>
             <img src="/logo.png" alt="logo" style={{ height: "20px", paddingRight: "10px" }} />
             <Typography variant="h6" style={{ flexGrow: 1 }}>
-                Liquidity Locker
+                AirPAD
             </Typography>
             <Button color="inherit" component={Link} to="/">
                 Home
