@@ -1,101 +1,117 @@
 // src/components/LockedTokens.js
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
-import { getFactoryContract, getContract } from "../utils/getContract";
-import {
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-} from "@mui/material";
-import { toast } from "react-toastify";
 import { isAddress } from "ethers/lib/utils";
+import { toast } from "react-toastify";
+import { getContract } from "../utils/getContract";
 
 const IsLocked = ({ signer }) => {
   const [lockState, setLockState] = useState();
   const [lockAmount, setLockAmount] = useState();
   const [unlockTimes, setUnlockTimes] = useState();
+  const [tokenAddress, setTokenAddress] = useState("");
+  const [lockInfo, setLockInfo] = useState(null);
 
-  const isLocked = async (tokenAddress) => {
+  // Check if token is locked
+  const isLocked = async (address) => {
     const contract = getContract(signer);
 
+    // Fetch token name & symbol
     const tokenContract = new ethers.Contract(
-      tokenAddress,
+      address,
       [
         "function name() view returns (string)",
         "function symbol() view returns (string)",
       ],
       signer
     );
+
     const tokenName = await tokenContract.name();
     const tokenSymbol = await tokenContract.symbol();
 
-    const lockInfo = await contract.getTokenLockInfo(tokenAddress);
-    let lockState = lockInfo[0];
-    let lockAmount = ethers.utils.formatEther(lockInfo[1]);
-    let unlockTimes = lockInfo[2].map((time) => time.toNumber());
+    // Fetch lock info
+    const lockData = await contract.getTokenLockInfo(address);
+    const lockedState = lockData[0];
+    const lockedAmount = ethers.utils.formatEther(lockData[1]);
+    const lockedUnlockTimes = lockData[2].map((time) => time.toNumber());
 
-    setLockState(lockState);
-    setLockAmount(lockAmount);
-    setUnlockTimes(unlockTimes);
-    return { tokenName, tokenSymbol, lockState, lockAmount, unlockTimes };
+    // Update local state
+    setLockState(lockedState);
+    setLockAmount(lockedAmount);
+    setUnlockTimes(lockedUnlockTimes);
+
+    return {
+      tokenName,
+      tokenSymbol,
+      lockState: lockedState,
+      lockAmount: lockedAmount,
+      unlockTimes: lockedUnlockTimes,
+    };
   };
 
-  const [tokenAddress, setTokenAddress] = useState("");
-  const [lockInfo, setLockInfo] = useState(null);
-
+  // Handle "Check Lock" click
   const handleCheckLock = async () => {
     if (!isAddress(tokenAddress)) {
       toast.error("Invalid token address");
       return;
     }
-    const lockData = await isLocked(tokenAddress);
-    setLockInfo(lockData);
+    try {
+      const lockData = await isLocked(tokenAddress);
+      setLockInfo(lockData);
+    } catch (error) {
+      console.error("Error checking lock:", error);
+      toast.error(`Error checking lock: ${error.message}`);
+    }
   };
 
   return (
-    <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
-      <Typography variant="h6" gutterBottom>
-        Check Token Lock Status
-      </Typography>
-      <input
-        type="text"
-        value={tokenAddress}
-        onChange={(e) => setTokenAddress(e.target.value)}
-        placeholder="Enter token address"
-        style={{ width: "100%", padding: "10px", marginBottom: "20px" }}
-      />
-      <Button variant="contained" color="primary" onClick={handleCheckLock}>
-        Check Lock
-      </Button>
-      {lockInfo && (
-        <div style={{ marginTop: "20px" }}>
-          <Typography variant="h6">Lock Information</Typography>
-          <Typography>
-            <strong>Token Name:</strong> {lockInfo.tokenName}
-          </Typography>
-          <Typography>
-            <strong>Symbol:</strong> {lockInfo.tokenSymbol}
-          </Typography>
-          <Typography>
-            <strong>Amount:</strong> {lockInfo.lockAmount}
-          </Typography>
-          <Typography>
-            <strong>Unlock Times:</strong>
-          </Typography>
-          <ul>
-            {lockInfo.unlockTimes.map((time, index) => (
-              <li key={index}>{new Date(time * 1000).toLocaleString()}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </Paper>
+    <div className="flex items-center justify-center">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-2xl font-semibold text-center mb-6">
+          Check Token Lock Status
+        </h2>
+
+        {/* Token Address Input */}
+        <input
+          type="text"
+          value={tokenAddress}
+          onChange={(e) => setTokenAddress(e.target.value)}
+          placeholder="Enter token address"
+          className="w-full px-3 py-2 mb-4 border rounded focus:outline-none focus:ring focus:ring-blue-300"
+        />
+
+        {/* Check Lock Button */}
+        <button
+          onClick={handleCheckLock}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+          Check Lock
+        </button>
+
+        {/* Display Lock Info */}
+        {lockInfo && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2">Lock Information</h3>
+            <p className="text-sm text-gray-700 mb-1">
+              <strong>Token Name:</strong> {lockInfo.tokenName}
+            </p>
+            <p className="text-sm text-gray-700 mb-1">
+              <strong>Symbol:</strong> {lockInfo.tokenSymbol}
+            </p>
+            <p className="text-sm text-gray-700 mb-1">
+              <strong>Amount:</strong> {lockInfo.lockAmount}
+            </p>
+            <p className="text-sm text-gray-700 mb-2">
+              <strong>Unlock Times:</strong>
+            </p>
+            <ul className="list-disc list-inside text-sm text-gray-700">
+              {lockInfo.unlockTimes.map((time, index) => (
+                <li key={index}>{new Date(time * 1000).toLocaleString()}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

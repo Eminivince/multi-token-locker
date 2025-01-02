@@ -1,8 +1,7 @@
 // src/components/LockForm.js
 import React, { useState } from "react";
 import { ethers } from "ethers";
-import {getContract} from "../utils/getContract";
-import { TextField, Button, Typography, Grid, Paper } from "@mui/material";
+import { getContract } from "../utils/getContract";
 import { toast } from "react-toastify";
 
 const LockForm = ({ signer }) => {
@@ -10,103 +9,134 @@ const LockForm = ({ signer }) => {
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState(""); // Duration in days
 
-const handleLock = async (e) => {
+  const handleLock = async (e) => {
     e.preventDefault();
     if (!tokenAddress || !amount || !duration) {
-        toast.error("Please fill in all fields.");
-        return;
+      toast.error("Please fill in all fields.");
+      return;
     }
 
     try {
-        const contract = getContract(signer);
-        const tokenContract = new ethers.Contract(
-            tokenAddress,
-            [
-                "function approve(address spender, uint256 amount) public returns (bool)",
-                "function allowance(address owner, address spender) public view returns (uint256)"
-            ],
-            signer
+      const contract = getContract(signer);
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        [
+          "function approve(address spender, uint256 amount) public returns (bool)",
+          "function allowance(address owner, address spender) public view returns (uint256)",
+        ],
+        signer
+      );
+
+      const parsedAmount = ethers.utils.parseUnits(amount, 18);
+      const allowance = await tokenContract.allowance(
+        await signer.getAddress(),
+        contract.address
+      );
+
+      // If allowance is not sufficient, approve the locker contract
+      if (allowance.lt(parsedAmount)) {
+        toast.info("Approving tokens...");
+        const approveTx = await tokenContract.approve(
+          contract.address,
+          parsedAmount
         );
+        await approveTx.wait();
+        toast.success("Tokens approved!");
+      }
 
-        const parsedAmount = ethers.utils.parseUnits(amount, 18);
-        const allowance = await tokenContract.allowance(await signer.getAddress(), contract.address);
+      // Lock the tokens
+      toast.info("Locking tokens...");
+      const lockTx = await contract.lockTokens(
+        tokenAddress,
+        parsedAmount,
+        parseInt(duration) * 86400 // Convert days to seconds
+      );
+      await lockTx.wait();
+      toast.success("Tokens locked successfully!");
 
-        if (allowance.lt(parsedAmount)) {
-            // Approve the locker contract to spend tokens
-            const approveTx = await tokenContract.approve(contract.address, parsedAmount);
-            toast.info("Approving tokens...");
-            await approveTx.wait();
-            toast.success("Tokens approved!");
-        }
-
-        // Lock the tokens
-        const lockTx = await contract.lockTokens(
-            tokenAddress,
-            parsedAmount,
-            parseInt(duration) * 86400 // Convert days to seconds
-        );
-        toast.info("Locking tokens...");
-        await lockTx.wait();
-        toast.success("Tokens locked successfully!");
-
-        // Reset form
-        setTokenAddress("");
-        setAmount("");
-        setDuration("");
+      // Reset form
+      setTokenAddress("");
+      setAmount("");
+      setDuration("");
     } catch (error) {
-        console.error("Locking failed:", error);
-        toast.error(`Failed to lock tokens: ${error.message}`);
+      console.error("Locking failed:", error);
+      toast.error(`Failed to lock tokens: ${error.message}`);
     }
-};
+  };
 
   return (
-    <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
-      <Typography variant="h6" gutterBottom>
-        Lock ERC20 Tokens
-      </Typography>
-      <form onSubmit={handleLock}>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              label="Token Address"
+    <div className="flex items-center justify-center mb-16">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-2xl font-semibold text-center mb-6">
+          Lock ERC20 Tokens
+        </h2>
+        <form onSubmit={handleLock} className="space-y-6">
+          {/* Token Address */}
+          <div>
+            <label
+              className="block text-sm font-medium text-gray-700 mb-1"
+              htmlFor="tokenAddress">
+              Token Address
+            </label>
+            <input
+              id="tokenAddress"
               type="text"
+              placeholder="0x..."
               value={tokenAddress}
               onChange={(e) => setTokenAddress(e.target.value)}
-              fullWidth
               required
-              placeholder="0x..."
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-300"
             />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Amount"
+          </div>
+
+          {/* Amount */}
+          <div>
+            <label
+              className="block text-sm font-medium text-gray-700 mb-1"
+              htmlFor="amount">
+              Amount
+            </label>
+            <input
+              id="amount"
               type="number"
+              placeholder="e.g., 1000"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              fullWidth
               required
-              inputProps={{ min: "0", step: "any" }}
+              min="0"
+              step="any"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-300"
             />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Lock Duration (days)"
+          </div>
+
+          {/* Lock Duration (Days) */}
+          <div>
+            <label
+              className="block text-sm font-medium text-gray-700 mb-1"
+              htmlFor="duration">
+              Lock Duration (days)
+            </label>
+            <input
+              id="duration"
               type="number"
+              placeholder="e.g., 30"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              fullWidth
               required
-              inputProps={{ min: "1" }}
+              min="1"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-300"
             />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Button variant="contained" color="primary" type="submit" fullWidth>
-              Lock Tokens
-            </Button>
-          </Grid>
-        </Grid>
-      </form>
-    </Paper>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+            Lock Tokens
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 

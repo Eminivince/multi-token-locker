@@ -19,8 +19,6 @@ const ConnectWallet = ({ setProvider, setSigner, setAddress }) => {
       const provider = new ethers.providers.Web3Provider(connection);
       const signer = provider.getSigner();
 
-      
-
       // Check if getAddress exists
       if (typeof signer.getAddress !== "function") {
         throw new Error("Signer does not have getAddress method");
@@ -51,7 +49,6 @@ const ConnectWallet = ({ setProvider, setSigner, setAddress }) => {
       });
     } catch (error) {
       console.error("Wallet connection failed:", error);
-      alert(`Wallet connection failed: ${error.message}`);
     }
   };
 

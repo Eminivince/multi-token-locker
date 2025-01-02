@@ -2,22 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { getContract } from "../utils/getContract";
-import {
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-} from "@mui/material";
 import { toast } from "react-toastify";
 
 const LockedTokens = ({ signer, address }) => {
   const [locks, setLocks] = useState([]);
 
+  // Fetch locked tokens
   const fetchLocks = async () => {
     try {
       const contract = getContract(signer);
@@ -26,6 +16,8 @@ const LockedTokens = ({ signer, address }) => {
 
       for (let i = 0; i < totalLocks; i++) {
         const lock = await contract.getLock(address, i);
+
+        // Fetch token name & symbol
         const tokenContract = new ethers.Contract(
           lock.token,
           [
@@ -36,6 +28,8 @@ const LockedTokens = ({ signer, address }) => {
         );
         const name = await tokenContract.name();
         const symbol = await tokenContract.symbol();
+
+        // Prepare data
         locksData.push({
           index: i,
           tokenName: name,
@@ -46,7 +40,6 @@ const LockedTokens = ({ signer, address }) => {
           ).toLocaleString(),
         });
       }
-
       setLocks(locksData);
     } catch (error) {
       console.error("Error fetching locks:", error);
@@ -61,6 +54,7 @@ const LockedTokens = ({ signer, address }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signer, address]);
 
+  // Unlock function
   const handleUnlock = async (indices) => {
     if (indices.length === 0) {
       toast.error("No locks available for unlocking.");
@@ -69,8 +63,8 @@ const LockedTokens = ({ signer, address }) => {
 
     try {
       const contract = getContract(signer);
-      const tx = await contract.unlockTokens(indices);
       toast.info("Unlocking tokens...");
+      const tx = await contract.unlockTokens(indices);
       await tx.wait();
       toast.success("Tokens unlocked successfully!");
       fetchLocks();
@@ -80,71 +74,83 @@ const LockedTokens = ({ signer, address }) => {
     }
   };
 
-  // Function to determine which locks are unlockable
+  // Determine which locks can be unlocked
   const getUnlockableIndices = () => {
     const currentTime = Math.floor(Date.now() / 1000);
-    const unlockable = locks
+    return locks
       .filter(
         (lock) => new Date(lock.unlockTime).getTime() / 1000 <= currentTime
       )
       .map((lock) => lock.index);
-    return unlockable;
   };
 
   const unlockableIndices = getUnlockableIndices();
 
   return (
-    <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
-      <Typography variant="h6" gutterBottom>
-        Your Locked Tokens
-      </Typography>
-      {locks.length === 0 ? (
-        <Typography>No tokens locked.</Typography>
-      ) : (
-        <>
-          <TableContainer component={Paper}>
-            <Table aria-label="locked tokens table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Token Name</TableCell>
-                  <TableCell>Symbol</TableCell>
-                  <TableCell align="right">Amount</TableCell>
-                  <TableCell align="right">Unlock Time</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {locks.map((lock) => (
-                  <TableRow key={lock.index}>
-                    <TableCell component="th" scope="row">
-                      {lock.tokenName}
-                    </TableCell>
-                    <TableCell>{lock.tokenSymbol}</TableCell>
-                    <TableCell align="right">{lock.amount}</TableCell>
-                    <TableCell align="right">{lock.unlockTime}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Button
-            variant="contained"
-            color="secondary"
-            style={{ marginTop: "20px" }}
-            onClick={() => handleUnlock(unlockableIndices)}
-            disabled={unlockableIndices.length === 0}>
-            Unlock Available Tokens
-          </Button>
-          {unlockableIndices.length === 0 && (
-            <Typography
-              variant="body2"
-              color="textSecondary"
-              style={{ marginTop: "10px" }}>
-              No tokens available for unlocking at this time.
-            </Typography>
-          )}
-        </>
-      )}
-    </Paper>
+    <div className="flex items-center justify-center mb-16 ">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-2xl font-semibold text-center mb-6">
+          Your Locked Tokens
+        </h2>
+
+        {locks.length === 0 ? (
+          <p className="text-center text-gray-700">No tokens locked.</p>
+        ) : (
+          <>
+            {/* Table Container */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 font-semibold text-gray-700">
+                      Token Name
+                    </th>
+                    <th className="px-4 py-2 font-semibold text-gray-700">
+                      Symbol
+                    </th>
+                    <th className="px-4 py-2 font-semibold text-gray-700 text-right">
+                      Amount
+                    </th>
+                    <th className="px-4 py-2 font-semibold text-gray-700 text-right">
+                      Unlock Time
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {locks.map((lock) => (
+                    <tr key={lock.index} className="border-b last:border-0">
+                      <td className="px-4 py-2">{lock.tokenName}</td>
+                      <td className="px-4 py-2">{lock.tokenSymbol}</td>
+                      <td className="px-4 py-2 text-right">{lock.amount}</td>
+                      <td className="px-4 py-2 text-right">
+                        {lock.unlockTime}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Unlock Button */}
+            <button
+              className={`px-4 py-2 mt-4 bg-purple-600 hover:bg-purple-700 text-white rounded 
+                          focus:outline-none focus:ring focus:ring-purple-300 
+                          disabled:bg-gray-300 disabled:cursor-not-allowed`}
+              onClick={() => handleUnlock(unlockableIndices)}
+              disabled={unlockableIndices.length === 0}>
+              Unlock Available Tokens
+            </button>
+
+            {/* No unlockable tokens text */}
+            {unlockableIndices.length === 0 && (
+              <p className="text-sm text-gray-500 mt-2">
+                No tokens available for unlocking at this time.
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 

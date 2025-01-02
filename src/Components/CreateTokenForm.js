@@ -1,20 +1,8 @@
 // src/components/CreateTokenForm.js
-
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import ERC20Token from "../abi/ERC20Token.json";
 import { getProvider, getSigner } from "../ethereum";
-import {
-  TextField,
-  Button,
-  Typography,
-  Grid,
-  Paper,
-  Checkbox,
-  FormControlLabel,
-  CircularProgress,
-  Link,
-} from "@mui/material";
 import { toast } from "react-toastify";
 
 const CreateTokenForm = () => {
@@ -40,6 +28,7 @@ const CreateTokenForm = () => {
         return;
       }
 
+      // Prompt user to connect their wallet
       await provider.send("eth_requestAccounts", []);
       const signer = getSigner(provider);
 
@@ -50,7 +39,9 @@ const CreateTokenForm = () => {
       );
 
       setLoading(true);
-      const initialSupply = supply; // Ensure 18 decimals
+
+      // For real usage, you’d want to handle decimal conversions carefully
+      const initialSupply = supply;
 
       const contract = await ERC20Factory.deploy(
         name,
@@ -76,122 +67,120 @@ const CreateTokenForm = () => {
   };
 
   return (
-    <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
-      <Typography variant="h6" gutterBottom>
-        Create Your ERC20 Token
-      </Typography>
-      <form onSubmit={handleDeploy}>
-        <Grid container spacing={2}>
+    <div className="flex items-center justify-center mb-16 ">
+      {/* Modal Container */}
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-2xl font-semibold text-center mb-4">
+          Create Your ERC20 Token
+        </h2>
+        <form onSubmit={handleDeploy} className="space-y-4">
           {/* Token Name */}
-          <Grid item xs={12}>
-            <TextField
-              label="Token Name"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Token Name
+            </label>
+            <input
               type="text"
+              placeholder="e.g., MyToken"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              fullWidth
               required
-              placeholder="e.g., MyToken"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-300"
             />
-          </Grid>
+          </div>
 
           {/* Token Symbol */}
-          <Grid item xs={12}>
-            <TextField
-              label="Token Symbol"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Token Symbol
+            </label>
+            <input
               type="text"
+              placeholder="e.g., MTK"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
-              fullWidth
               required
-              placeholder="e.g., MTK"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-300"
             />
-          </Grid>
+          </div>
 
           {/* Total Supply */}
-          <Grid item xs={12}>
-            <TextField
-              label="Total Supply"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Total Supply
+            </label>
+            <input
               type="number"
+              placeholder="e.g., 1000000"
               value={supply}
               onChange={(e) => setSupply(e.target.value)}
-              fullWidth
               required
-              inputProps={{ min: "0", step: "any" }}
-              placeholder="e.g., 1000000"
+              min="0"
+              step="any"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-300"
             />
-          </Grid>
+          </div>
 
           {/* Mintable Checkbox */}
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={mintable}
-                  onChange={(e) => setMintable(e.target.checked)}
-                  color="primary"
-                />
-              }
-              label="Mintable"
+          <div className="flex items-center">
+            <input
+              id="mintable-checkbox"
+              type="checkbox"
+              checked={mintable}
+              onChange={(e) => setMintable(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-          </Grid>
+            <label
+              htmlFor="mintable-checkbox"
+              className="ml-2 text-sm text-gray-700">
+              Mintable
+            </label>
+          </div>
 
           {/* Deploy Button */}
-          <Grid item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              fullWidth
-              disabled={loading}
-              startIcon={loading && <CircularProgress size={20} />}>
-              {loading ? "Deploying..." : "Deploy Token"}
-            </Button>
-          </Grid>
-        </Grid>
-      </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full px-4 py-2 text-white rounded ${
+              loading
+                ? "bg-blue-300 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 focus:ring focus:ring-blue-300"
+            }`}>
+            {loading ? "Deploying..." : "Deploy Token"}
+          </button>
+        </form>
 
-      {/* Display Contract Address */}
-      {contractAddress && (
-        <Paper
-          elevation={2}
-          style={{
-            padding: "15px",
-            marginTop: "20px",
-            backgroundColor: "#f5f5f5",
-          }}>
-          <Typography variant="subtitle1">
-            <strong>Token Deployed!</strong>
-          </Typography>
-          <Typography variant="body2" gutterBottom>
-            <strong>Address:</strong> {contractAddress}
-          </Typography>
+        {/* Display Contract Address */}
+        {contractAddress && (
+          <div className="mt-6 p-4 bg-gray-50 rounded">
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              <strong>Token Deployed!</strong>
+            </p>
+            <p className="text-xs text-gray-700 break-all mb-2">
+              <strong>Address:</strong> {contractAddress}
+            </p>
 
-          {/* View on AirDAO Explorer */}
-          <Typography variant="body2" gutterBottom>
-            <Link
-              href={`https://airdao.io/explorer/tx/${contractAddress}`}
+            {/* View on AirDAO Explorer */}
+            <a
+              href={`https://airdao.io/explorer/address/${contractAddress}`}
               target="_blank"
-              rel="noopener noreferrer">
+              rel="noopener noreferrer"
+              className="text-blue-600 underline text-xs block mb-2">
               View on AirDAO Explorer
-            </Link>
-          </Typography>
+            </a>
 
-          {/* Add Liquidity on Astra */}
-          <Button
-            variant="contained"
-            color="secondary"
-            fullWidth
-            component="a"
-            href={`https://star-fleet.io/astra/pool/add/AMB/${contractAddress}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ marginTop: "10px" }}>
-            Add Liquidity on Astra
-          </Button>
-        </Paper>
-      )}
-    </Paper>
+            {/* Add Liquidity on Astra */}
+            <a
+              href={`https://star-fleet.io/astra/pool/add/AMB/${contractAddress}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block w-full px-4 py-2 text-center text-white bg-purple-600 hover:bg-purple-700 rounded text-sm">
+              Add Liquidity on Astra
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
